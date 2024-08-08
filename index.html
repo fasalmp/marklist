@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Marks Entry</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body {
+            background-color: #15202b;
+            color: #ffffff;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .table th, .table td {
+            color: #ffffff;
+        }
+        .btn-primary {
+            background-color: #1DA1F2;
+            border-color: #1DA1F2;
+        }
+        .btn-primary:hover {
+            background-color: #0d8fe5;
+            border-color: #0d8fe5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Class Marks Entry</h1>
+        <form id="classForm">
+            <div class="form-group">
+                <label for="className">Class Name:</label>
+                <select class="form-control" id="className" required>
+                    <option value="" disabled selected>Select Class</option>
+                    <option value="Class 1">Class 1</option>
+                    <option value="Class 2">Class 2</option>
+                    <option value="Class 3">Class 3</option>
+                    <option value="Class 4">Class 4</option>
+                    <option value="Class 5">Class 5</option>
+                    <option value="Class 6">Class 6</option>
+                    <option value="Class 7">Class 7</option>
+                    <option value="Class 8">Class 8</option>
+                    <option value="Class 9">Class 9</option>
+                    <option value="Class 10">Class 10</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="studentCount">Number of Students:</label>
+                <input type="number" class="form-control" id="studentCount" required>
+            </div>
+            <div class="form-group">
+                <label for="subjectCount">Number of Subjects:</label>
+                <input type="number" class="form-control" id="subjectCount" required>
+            </div>
+            <div id="subjectNames" class="form-group"></div>
+            <button type="button" class="btn btn-primary" onclick="generateStudentTable()">Submit</button>
+        </form>
+        <div id="studentTableContainer" class="mt-5"></div>
+        <button type="button" class="btn btn-primary mt-3" onclick="generatePDF()">Generate PDF</button>
+    </div>
+
+    <script>
+        function generateStudentTable() {
+            const className = document.getElementById('className').value;
+            const studentCount = document.getElementById('studentCount').value;
+            const subjectCount = document.getElementById('subjectCount').value;
+            let subjects = [];
+
+            for (let i = 0; i < subjectCount; i++) {
+                const subjectName = document.getElementById('subjectName' + i).value;
+                subjects.push(subjectName);
+            }
+
+            let tableHTML = `<h3>${className}</h3>
+                            <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>`;
+            subjects.forEach(subject => {
+                tableHTML += `<th>${subject} (Out of 50)</th>`;
+            });
+            tableHTML += `<th>Total Marks (Out of ${subjectCount * 50})</th>
+                          <th>Percentage</th>
+                          <th>Rank</th>
+                          </tr>
+                        </thead>
+                        <tbody>`;
+            
+            for (let i = 0; i < studentCount; i++) {
+                tableHTML += `<tr>
+                                <td><input type="text" class="form-control" id="studentName${i}" required></td>`;
+                subjects.forEach((subject, index) => {
+                    tableHTML += `<td><input type="number" class="form-control" id="student${i}subject${index}" max="50" required></td>`;
+                });
+                tableHTML += `<td id="totalMarks${i}"></td>
+                              <td id="percentage${i}"></td>
+                              <td id="rank${i}"></td>
+                              </tr>`;
+            }
+
+            tableHTML += `</tbody></table>`;
+
+            document.getElementById('studentTableContainer').innerHTML = tableHTML;
+        }
+
+        document.getElementById('subjectCount').addEventListener('input', function() {
+            const subjectCount = document.getElementById('subjectCount').value;
+            let subjectHTML = '';
+
+            for (let i = 0; i < subjectCount; i++) {
+                subjectHTML += `<label for="subjectName${i}">Subject ${i + 1} Name:</label>
+                                <input type="text" class="form-control mb-2" id="subjectName${i}" required>`;
+            }
+
+            document.getElementById('subjectNames').innerHTML = subjectHTML;
+        });
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const className = document.getElementById('className').value;
+            const studentCount = document.getElementById('studentCount').value;
+            const subjectCount = document.getElementById('subjectCount').value;
+            let subjects = [];
+            let students = [];
+
+            for (let i = 0; i < subjectCount; i++) {
+                const subjectName = document.getElementById('subjectName' + i).value;
+                subjects.push(subjectName);
+            }
+
+            for (let i = 0; i < studentCount; i++) {
+                const studentName = document.getElementById(`studentName${i}`).value;
+                let totalMarks = 0;
+
+                let marks = subjects.map((subject, index) => {
+                    const mark = parseInt(document.getElementById(`student${i}subject${index}`).value || 0);
+                    totalMarks += mark;
+                    return mark;
+                });
+
+                let percentage = (totalMarks / (subjectCount * 50)) * 100;
+                students.push({
+                    name: studentName,
+                    marks: marks,
+                    totalMarks: totalMarks,
+                    percentage: percentage
+                });
+            }
+
+            // Rank students based on total marks
+            students.sort((a, b) => b.totalMarks - a.totalMarks);
+            students.forEach((student, index) => {
+                student.rank = index + 1;
+            });
+
+            const tableData = students.map(student => {
+                return [student.name, ...student.marks, student.totalMarks, student.percentage.toFixed(2) + '%', student.rank];
+            });
+
+            const head = [['Student Name', ...subjects.map(sub => sub + ' (Out of 50)'), 'Total Marks', 'Percentage', 'Rank']];
+
+            // Adding the title and class name to the PDF
+            doc.setFontSize(20);
+            doc.setTextColor(29, 161, 242);
+            doc.text("IHYAUSUNNA MADRASA NORTH PULLOOR", doc.internal.pageSize.getWidth() / 2, 20, null, null, "center");
+
+            doc.setFontSize(16);
+            doc.setTextColor(29, 161, 242);
+            doc.text(className, doc.internal.pageSize.getWidth() / 2, 30, null, null, "center");
+
+            // Adding the table
+            doc.autoTable({
+                head: head,
+                body: tableData,
+                startY: 40,
+                theme: 'grid',
+                styles: {
+                    fillColor: [255, 255, 255], // White background
+                    textColor: [0, 0, 0],       // Black text
+                    lineColor: [0, 0, 0],       // Black border
+                    lineWidth: 0.5              // Thin border line
+                },
+                headStyles: {
+                    fillColor: [29, 161, 242],  // Twitter blue for header
+                    textColor: [255, 255, 255], // White text
+                }
+            });
+
+            doc.save('marks.pdf');
+        }
+    </script>
+</body>
+</html>
