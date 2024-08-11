@@ -3,199 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class Marks Entry</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+    <title>Mark Entry Form</title>
     <style>
         body {
-            background-color: #15202b;
-            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-        .container {
-            margin-top: 50px;
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
         }
-        .table th, .table td {
-            color: #ffffff;
+        .form-group {
+            margin-bottom: 15px;
         }
-        .btn-primary {
-            background-color: #1DA1F2;
-            border-color: #1DA1F2;
+        label {
+            display: block;
+            margin-bottom: 5px;
         }
-        .btn-primary:hover {
-            background-color: #0d8fe5;
-            border-color: #0d8fe5;
+        .student-mark {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .student-mark label {
+            flex: 1;
+            margin: 0;
+        }
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .student-mark input[type="number"] {
+            width: 60px;
+            margin-left: 10px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        .submit-btn {
+            background-color: #5cb85c;
+            color: white;
+        }
+        .individual-pdf-btn {
+            background-color: #d9534f;
+            color: white;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="text-center">Class Marks Entry</h1>
-        <form id="classForm">
+    <div class="card">
+        <h2>Mark Entry Form</h2>
+        <div id="initialForm">
             <div class="form-group">
-                <label for="className">Class Name:</label>
-                <select class="form-control" id="className" required>
-                    <option value="" disabled selected>Select Class</option>
-                    <option value="Class 1">Class 1</option>
-                    <option value="Class 2">Class 2</option>
-                    <option value="Class 3">Class 3</option>
-                    <option value="Class 4">Class 4</option>
-                    <option value="Class 5">Class 5</option>
-                    <option value="Class 6">Class 6</option>
-                    <option value="Class 7">Class 7</option>
-                    <option value="Class 8">Class 8</option>
-                    <option value="Class 9">Class 9</option>
-                    <option value="Class 10">Class 10</option>
-                </select>
+                <label for="numSubjects">Number of Subjects</label>
+                <input type="number" id="numSubjects" placeholder="Enter number of subjects">
             </div>
             <div class="form-group">
-                <label for="studentCount">Number of Students:</label>
-                <input type="number" class="form-control" id="studentCount" required>
+                <label for="numStudents">Number of Students</label>
+                <input type="number" id="numStudents" placeholder="Enter number of students">
             </div>
-            <div class="form-group">
-                <label for="subjectCount">Number of Subjects:</label>
-                <input type="number" class="form-control" id="subjectCount" required>
-            </div>
-            <div id="subjectNames" class="form-group"></div>
-            <button type="button" class="btn btn-primary" onclick="generateStudentTable()">Submit</button>
-        </form>
-        <div id="studentTableContainer" class="mt-5"></div>
-        <button type="button" class="btn btn-primary mt-3" onclick="generatePDF()">Generate PDF</button>
+            <button class="submit-btn" onclick="generateSubjectForm()">Next</button>
+        </div>
+        <form id="subjectForm" style="display: none;"></form>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        function generateStudentTable() {
-            const className = document.getElementById('className').value;
-            const studentCount = document.getElementById('studentCount').value;
-            const subjectCount = document.getElementById('subjectCount').value;
-            let subjects = [];
+        function generateSubjectForm() {
+            const numSubjects = document.getElementById('numSubjects').value;
+            const numStudents = document.getElementById('numStudents').value;
+            const subjectForm = document.getElementById('subjectForm');
+            subjectForm.style.display = 'block';
+            let formContent = '';
 
-            for (let i = 0; i < subjectCount; i++) {
-                const subjectName = document.getElementById('subjectName' + i).value;
-                subjects.push(subjectName);
+            for (let i = 1; i <= numSubjects; i++) {
+                formContent += `
+                    <div class="form-group">
+                        <label for="subject${i}">Subject ${i} Name</label>
+                        <input type="text" id="subject${i}" placeholder="Enter subject ${i} name">
+                    </div>`;
+                for (let j = 1; j <= numStudents; j++) {
+                    formContent += `
+                    <div class="student-mark">
+                        <label for="mark${i}_${j}">Student ${j}</label>
+                        <input type="number" id="mark${i}_${j}" placeholder="">
+                    </div>`;
+                }
             }
-
-            let tableHTML = `<h3>${className}</h3>
-                            <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Student Name</th>`;
-            subjects.forEach(subject => {
-                tableHTML += `<th>${subject} (Out of 50)</th>`;
-            });
-            tableHTML += `<th>Total Marks (Out of ${subjectCount * 50})</th>
-                          <th>Percentage</th>
-                          <th>Rank</th>
-                          </tr>
-                        </thead>
-                        <tbody>`;
-            
-            for (let i = 0; i < studentCount; i++) {
-                tableHTML += `<tr>
-                                <td><input type="text" class="form-control" id="studentName${i}" required></td>`;
-                subjects.forEach((subject, index) => {
-                    tableHTML += `<td><input type="number" class="form-control" id="student${i}subject${index}" max="50" required></td>`;
-                });
-                tableHTML += `<td id="totalMarks${i}"></td>
-                              <td id="percentage${i}"></td>
-                              <td id="rank${i}"></td>
-                              </tr>`;
-            }
-
-            tableHTML += `</tbody></table>`;
-
-            document.getElementById('studentTableContainer').innerHTML = tableHTML;
+            formContent += `
+                <button type="button" class="submit-btn" onclick="generatePDF()">Submit</button>
+                <button type="button" class="individual-pdf-btn" onclick="generateIndividualPDFs()">Generate Individual PDFs</button>`;
+            subjectForm.innerHTML = formContent;
+            document.getElementById('initialForm').style.display = 'none';
         }
-
-        document.getElementById('subjectCount').addEventListener('input', function() {
-            const subjectCount = document.getElementById('subjectCount').value;
-            let subjectHTML = '';
-
-            for (let i = 0; i < subjectCount; i++) {
-                subjectHTML += `<label for="subjectName${i}">Subject ${i + 1} Name:</label>
-                                <input type="text" class="form-control mb-2" id="subjectName${i}" required>`;
-            }
-
-            document.getElementById('subjectNames').innerHTML = subjectHTML;
-        });
 
         function generatePDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const className = document.getElementById('className').value;
-            const studentCount = document.getElementById('studentCount').value;
-            const subjectCount = document.getElementById('subjectCount').value;
-            let subjects = [];
-            let students = [];
+            const numSubjects = document.getElementById('numSubjects').value;
+            const numStudents = document.getElementById('numStudents').value;
 
-            for (let i = 0; i < subjectCount; i++) {
-                const subjectName = document.getElementById('subjectName' + i).value;
-                subjects.push(subjectName);
+            let table = [];
+            let subjectNames = [];
+
+            // Get subject names
+            for (let i = 1; i <= numSubjects; i++) {
+                const subjectName = document.getElementById(`subject${i}`).value;
+                subjectNames.push(subjectName);
             }
 
-            for (let i = 0; i < studentCount; i++) {
-                const studentName = document.getElementById(`studentName${i}`).value;
+            // Create table headers
+            let headers = ['Student'];
+            headers = headers.concat(subjectNames, ['Total Marks', 'Percentage', 'Rank']);
+            table.push(headers);
+
+            // Fill in student marks and calculate total, percentage, and rank
+            let studentsData = [];
+
+            for (let j = 1; j <= numStudents; j++) {
+                let row = [`Student ${j}`];
                 let totalMarks = 0;
 
-                let marks = subjects.map((subject, index) => {
-                    const mark = parseInt(document.getElementById(`student${i}subject${index}`).value || 0);
-                    totalMarks += mark;
-                    return mark;
-                });
+                for (let i = 1; i <= numSubjects; i++) {
+                    const mark = document.getElementById(`mark${i}_${j}`).value;
+                    totalMarks += parseFloat(mark || 0);
+                    row.push(mark);
+                }
 
-                let percentage = (totalMarks / (subjectCount * 50)) * 100;
-                students.push({
-                    name: studentName,
-                    marks: marks,
+                const percentage = (totalMarks / (numSubjects * 50)) * 100;
+                studentsData.push({
+                    student: `Student ${j}`,
                     totalMarks: totalMarks,
-                    percentage: percentage
+                    percentage: percentage.toFixed(2),
+                    rank: 0, // Rank is temporarily set to 0
+                    row: row.concat([totalMarks, percentage.toFixed(2), 0])
                 });
             }
 
-            // Rank students based on total marks
-            students.sort((a, b) => b.totalMarks - a.totalMarks);
-            students.forEach((student, index) => {
-                student.rank = index + 1;
+            // Sort students by total marks to determine ranks, but do not reorder them in the table
+            studentsData.sort((a, b) => b.totalMarks - a.totalMarks);
+            studentsData.forEach((data, index) => {
+                data.rank = index + 1;
+                data.row[data.row.length - 1] = data.rank;
             });
 
-            const tableData = students.map(student => {
-                return [student.name, ...student.marks, student.totalMarks, student.percentage.toFixed(2) + '%', student.rank];
+            // Add original order rows with calculated rank to the table
+            studentsData.sort((a, b) => parseInt(a.student.split(" ")[1]) - parseInt(b.student.split(" ")[1]));
+            studentsData.forEach(data => {
+                table.push(data.row);
             });
 
-            const head = [['Student Name', ...subjects.map(sub => sub + ' (Out of 50)'), 'Total Marks', 'Percentage', 'Rank']];
-
-            // Adding the title and class name to the PDF
-            doc.setFontSize(20);
-            doc.setTextColor(29, 161, 242);
-            doc.text("IHYAUSUNNA MADRASA NORTH PULLOOR", doc.internal.pageSize.getWidth() / 2, 20, null, null, "center");
-
-            doc.setFontSize(16);
-            doc.setTextColor(29, 161, 242);
-            doc.text(className, doc.internal.pageSize.getWidth() / 2, 30, null, null, "center");
-
-            // Adding the table
+            // Add table to PDF
             doc.autoTable({
-                head: head,
-                body: tableData,
-                startY: 40,
-                theme: 'grid',
-                styles: {
-                    fillColor: [255, 255, 255], // White background
-                    textColor: [0, 0, 0],       // Black text
-                    lineColor: [0, 0, 0],       // Black border
-                    lineWidth: 0.5              // Thin border line
-                },
-                headStyles: {
-                    fillColor: [29, 161, 242],  // Twitter blue for header
-                    textColor: [255, 255, 255], // White text
-                }
+                head: [table[0]],
+                body: table.slice(1),
+                startY: 20,
+                theme: 'striped',
             });
 
+            // Save PDF
             doc.save('marks.pdf');
         }
+
+        function generateIndividualPDFs() {
+            const { jsPDF } = window.jspdf;
+            const numSubjects = document.getElementById('numSubjects').value;
+            const numStudents = document.getElementById('numStudents').value;
+
+            let subjectNames = [];
+
+            // Get subject names
+            for (let i = 1; i <= numSubjects; i++) {
+                const subjectName = document.getElementById(`subject${i}`).value;
+                subjectNames.push(subjectName);
+            }
+
+            // Fill in student marks and calculate total, percentage, and rank
+            let studentsData = [];
+
+            for (let j = 1; j <= numStudents; j++) {
+                let row = [`Student ${j}`];
+                let totalMarks = 0;
+
+                for (let i = 1; i <= numSubjects; i++) {
+                    const mark = document.getElementById(`mark${i}_${j}`).value;
+                    totalMarks += parseFloat(mark || 0);
+                    row.push(mark);
+                }
+
+                const percentage = (totalMarks / (numSubjects * 50)) * 100;
+                studentsData.push({
+                    student: `Student ${j}`,
+                    marks: row.slice(1),
+                    totalMarks: totalMarks,
+                    percentage: percentage.toFixed(2),
+                    rank: 0 // Rank is temporarily set to 0
+                });
+            }
+
+            // Sort students by total marks to determine ranks, but do not reorder them in the table
+            studentsData.sort((a, b) => b.totalMarks - a.totalMarks);
+            studentsData.forEach((data, index) => {
+                data.rank = index + 1;
+            });
+
+            // Generate individual PDFs
+            studentsData.sort((a, b) => parseInt(a.student.split(" ")[1]) - parseInt(b.student.split(" ")[1]));
+            studentsData.forEach((data) => {
+                const doc = new jsPDF();
+
+                // Add student details
+                doc.setFontSize(16);
+                doc.text(data.student, 20, 20);
+
+                // Add table with student's marks, total, percentage, and rank
+                doc.autoTable({
+                    head: [['Subject', 'Marks']],
+                    body: subjectNames.map((name, index) => [name, data.marks[index]]),
+                    startY: 30,
+                    theme: 'striped',
+                });
+
+                doc.text(`Total Marks: ${data.totalMarks}`, 20, doc.lastAutoTable.finalY + 10);
+                doc.text(`Percentage: ${data.percentage}%`, 20, doc.lastAutoTable.finalY + 20);
+                doc.text(`Rank: ${data.rank}`, 20, doc.lastAutoTable.finalY + 30);
+
+                // Save individual PDF
+                doc.save(`${data.student}.pdf`);
+            });
+        }
     </script>
+    <!-- Adding jsPDF Autotable Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 </body>
 </html>
