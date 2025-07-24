@@ -3,257 +3,431 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mark Entry Form</title>
+    <title>Exam Seat Arrangement</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF CDN for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- jsPDF-AutoTable CDN for table generation in PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.autotable.min.js"></script>
     <style>
+        /* Custom styles for better aesthetics and responsiveness */
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            color: #334155; /* Darker text color */
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
+            align-items: flex-start; /* Align to top for longer content */
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            box-sizing: border-box;
         }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        .container {
+            background-color: #ffffff;
+            border-radius: 1rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            padding: 2.5rem;
+            max-width: 900px;
             width: 100%;
-            max-width: 400px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        .student-mark {
             display: flex;
-            align-items: center;
-            margin-bottom: 10px;
+            flex-direction: column;
+            gap: 1.5rem;
         }
-        .student-mark label {
-            flex: 1;
-            margin: 0;
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Responsive grid for inputs */
+            gap: 1rem;
+            align-items: flex-end; /* Align labels and inputs nicely */
         }
-        input[type="number"],
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
+        .input-field {
+            display: flex;
+            flex-direction: column;
         }
-        .student-mark input[type="number"] {
-            width: 60px;
-            margin-left: 10px;
+        .input-field label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #475569; /* Slightly lighter label color */
         }
-        button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border-radius: 4px;
-            border: none;
+        .input-field input[type="text"],
+        .input-field input[type="number"] {
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e1; /* Light border */
+            border-radius: 0.5rem; /* Rounded input fields */
+            font-size: 1rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .input-field input[type="text"]:focus,
+        .input-field input[type="number"]:focus {
+            outline: none;
+            border-color: #6366f1; /* Indigo focus border */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Soft focus shadow */
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem; /* More rounded buttons */
+            font-weight: 600;
             cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle button shadow */
         }
-        .submit-btn {
-            background-color: #5cb85c;
-            color: white;
+        .btn-primary {
+            background-color: #4f46e5; /* Indigo 600 */
+            color: #ffffff;
         }
-        .individual-pdf-btn {
-            background-color: #d9534f;
-            color: white;
-            margin-top: 10px;
+        .btn-primary:hover {
+            background-color: #4338ca; /* Indigo 700 */
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .btn-secondary {
+            background-color: #10b981; /* Emerald 500 */
+            color: #ffffff;
+        }
+        .btn-secondary:hover {
+            background-color: #059669; /* Emerald 600 */
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .btn-danger {
+            background-color: #ef4444; /* Red 500 */
+            color: #ffffff;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626; /* Red 600 */
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .message-box {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-top: 1rem;
+            font-weight: 500;
+            text-align: center;
+        }
+        .message-box.error {
+            background-color: #fee2e2; /* Red 100 */
+            color: #b91c1c; /* Red 700 */
+            border: 1px solid #ef4444;
+        }
+        .message-box.success {
+            background-color: #d1fae5; /* Green 100 */
+            color: #065f46; /* Green 700 */
+            border: 1px solid #10b981;
+        }
+        .seat-plan-output {
+            background-color: #f8fafc; /* Lighter background for output */
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            min-height: 150px;
+            font-family: 'monospace', sans-serif; /* Monospace for seat plan */
+            font-size: 0.95rem;
+            line-height: 1.6;
+            overflow-x: auto; /* Allow horizontal scrolling for very long lines */
+        }
+        /* Table specific styles */
+        .seat-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+            overflow: hidden; /* Ensures rounded corners apply to table */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .seat-table th, .seat-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border: 1px solid #cbd5e1; /* Added explicit border to all cells for Excel-like grid */
+        }
+        .seat-table th {
+            background-color: #e0e7ff; /* Light indigo for header */
+            color: #312e81; /* Darker indigo text */
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+        }
+        .seat-table tbody tr:nth-child(odd) {
+            background-color: #f9fafb; /* Slightly darker for odd rows */
+        }
+        .seat-table tbody tr:hover {
+            background-color: #eff6ff; /* Light blue on hover */
+        }
+        .seat-table td:first-child {
+            font-weight: 500;
+            color: #475569;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .container {
+                padding: 1.5rem;
+            }
+            .input-group {
+                grid-template-columns: 1fr; /* Stack inputs on small screens */
+            }
+            .btn {
+                width: 100%; /* Full width buttons on small screens */
+            }
+            .seat-table th, .seat-table td {
+                padding: 0.5rem 0.75rem; /* Smaller padding on mobile */
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
-<body>
-    <div class="card">
-        <h2>Mark Entry Form</h2>
-        <div id="initialForm">
-            <div class="form-group">
-                <label for="numSubjects">Number of Subjects</label>
-                <input type="number" id="numSubjects" placeholder="Enter number of subjects">
+<body class="antialiased">
+    <div class="container">
+        <h1 class="text-3xl font-extrabold text-center text-gray-800 mb-6">Exam Seat Arrangement</h1>
+
+        <!-- Class Entry Section -->
+        <div class="bg-gray-50 p-6 rounded-lg shadow-inner">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Class Details</h2>
+            <div id="classInputsContainer" class="flex flex-col gap-4 mb-4">
+                <!-- Dynamic class inputs will be added here -->
             </div>
-            <div class="form-group">
-                <label for="numStudents">Number of Students</label>
-                <input type="number" id="numStudents" placeholder="Enter number of students">
-            </div>
-            <button class="submit-btn" onclick="generateSubjectForm()">Next</button>
+            <button id="addClassBtn" class="btn btn-secondary w-full md:w-auto">
+                Add New Class Entry
+            </button>
         </div>
-        <form id="subjectForm" style="display: none;"></form>
+
+        <!-- Bench Input Section -->
+        <div class="bg-gray-50 p-6 rounded-lg shadow-inner">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Bench Information</h2>
+            <div class="input-group">
+                <div class="input-field">
+                    <label for="boyBenches">Total Benches for Boys:</label>
+                    <input type="number" id="boyBenches" value="0" min="0" class="w-full">
+                </div>
+                <div class="input-field">
+                    <label for="girlBenches">Total Benches for Girls:</label>
+                    <input type="number" id="girlBenches" value="0" min="0" class="w-full">
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col md:flex-row gap-4">
+            <button id="generatePlanBtn" class="btn btn-primary flex-grow">
+                Generate Seat Plan
+            </button>
+            <button id="exportPdfBtn" class="btn btn-secondary flex-grow" style="display: none;">
+                Export as PDF
+            </button>
+            <button id="exportSheetBtn" class="btn btn-secondary flex-grow" style="display: none;">
+                Export as Sheet
+            </button>
+        </div>
+
+        <!-- Message Box -->
+        <div id="messageBox" class="message-box" style="display: none;"></div>
+
+        <!-- Seat Plan Output Section -->
+        <div class="bg-gray-50 p-6 rounded-lg shadow-inner">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Generated Seat Plan</h2>
+            <div id="seatPlanOutput" class="seat-plan-output">
+                Your seat plan will appear here after generation.
+            </div>
+        </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        function generateSubjectForm() {
-            const numSubjects = document.getElementById('numSubjects').value;
-            const numStudents = document.getElementById('numStudents').value;
-            const subjectForm = document.getElementById('subjectForm');
-            subjectForm.style.display = 'block';
-            let formContent = '';
+        // Ensure the DOM is fully loaded before running the script
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get references to DOM elements
+            const classInputsContainer = document.getElementById('classInputsContainer');
+            const addClassBtn = document.getElementById('addClassBtn');
+            const generatePlanBtn = document.getElementById('generatePlanBtn');
+            const exportPdfBtn = document.getElementById('exportPdfBtn');
+            const exportSheetBtn = document.getElementById('exportSheetBtn'); // New button
+            const boyBenchesInput = document.getElementById('boyBenches');
+            const girlBenchesInput = document.getElementById('girlBenches');
+            const seatPlanOutput = document.getElementById('seatPlanOutput');
+            const messageBox = document.getElementById('messageBox');
 
-            for (let i = 1; i <= numSubjects; i++) {
-                formContent += `
-                    <div class="form-group">
-                        <label for="subject${i}">Subject ${i} Name</label>
-                        <input type="text" id="subject${i}" placeholder="Enter subject ${i} name">
-                    </div>`;
-                for (let j = 1; j <= numStudents; j++) {
-                    formContent += `
-                    <div class="student-mark">
-                        <label for="mark${i}_${j}">Student ${j}</label>
-                        <input type="number" id="mark${i}_${j}" placeholder="">
-                    </div>`;
-                }
-            }
-            formContent += `
-                <button type="button" class="submit-btn" onclick="generatePDF()">Submit</button>
-                <button type="button" class="individual-pdf-btn" onclick="generateIndividualPDFs()">Generate Individual PDFs</button>`;
-            subjectForm.innerHTML = formContent;
-            document.getElementById('initialForm').style.display = 'none';
-        }
+            // Array to store class data
+            // Each element will be an object like: { className: '10A', boys: 20, girls: 15 }
+            let classesData = [];
+            let classCounter = 0; // To give unique IDs to class entries
 
-        function generatePDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const numSubjects = document.getElementById('numSubjects').value;
-            const numStudents = document.getElementById('numStudents').value;
-
-            let table = [];
-            let subjectNames = [];
-
-            // Get subject names
-            for (let i = 1; i <= numSubjects; i++) {
-                const subjectName = document.getElementById(`subject${i}`).value;
-                subjectNames.push(subjectName);
+            /**
+             * Displays a message in the message box.
+             * @param {string} message - The message to display.
+             * @param {string} type - The type of message ('error' or 'success').
+             */
+            function showMessage(message, type) {
+                messageBox.textContent = message;
+                messageBox.className = `message-box ${type}`; // Apply styling based on type
+                messageBox.style.display = 'block'; // Make the message box visible
+                // Hide the message after 5 seconds
+                setTimeout(() => {
+                    messageBox.style.display = 'none';
+                }, 5000);
             }
 
-            // Create table headers
-            let headers = ['Student'];
-            headers = headers.concat(subjectNames, ['Total Marks', 'Percentage', 'Rank']);
-            table.push(headers);
+            /**
+             * Adds a new set of input fields for a class (Class Name, Boys, Girls).
+             * This function is called when the "Add New Class Entry" button is clicked.
+             */
+            function addClassEntry() {
+                const classId = `class-${classCounter++}`; // Unique ID for the class entry
 
-            // Fill in student marks and calculate total, percentage, and rank
-            let studentsData = [];
+                // Create a div to hold all inputs for this class
+                const classEntryDiv = document.createElement('div');
+                classEntryDiv.id = classId;
+                classEntryDiv.className = 'input-group bg-white p-4 rounded-lg border border-gray-200'; // Styling for each class entry
 
-            for (let j = 1; j <= numStudents; j++) {
-                let row = [`Student ${j}`];
-                let totalMarks = 0;
+                // Create input field for Class Name
+                const classNameField = document.createElement('div');
+                classNameField.className = 'input-field';
+                classNameField.innerHTML = `
+                    <label for="${classId}-name">Class Name:</label>
+                    <input type="text" id="${classId}-name" class="w-full" placeholder="e.g., 10A" required>
+                `;
 
-                for (let i = 1; i <= numSubjects; i++) {
-                    const mark = document.getElementById(`mark${i}_${j}`).value;
-                    totalMarks += parseFloat(mark || 0);
-                    row.push(mark);
-                }
+                // Create input field for Number of Boys
+                const boysField = document.createElement('div');
+                boysField.className = 'input-field';
+                boysField.innerHTML = `
+                    <label for="${classId}-boys">Number of Boys:</label>
+                    <input type="number" id="${classId}-boys" class="w-full" value="0" min="0" required>
+                `;
 
-                const percentage = (totalMarks / (numSubjects * 50)) * 100;
-                studentsData.push({
-                    student: `Student ${j}`,
-                    totalMarks: totalMarks,
-                    percentage: percentage.toFixed(2),
-                    rank: 0, // Rank is temporarily set to 0
-                    row: row.concat([totalMarks, percentage.toFixed(2), 0])
+                // Create input field for Number of Girls
+                const girlsField = document.createElement('div');
+                girlsField.className = 'input-field';
+                girlsField.innerHTML = `
+                    <label for="${classId}-girls">Number of Girls:</label>
+                    <input type="number" id="${classId}-girls" class="w-full" value="0" min="0" required>
+                `;
+
+                // Create a delete button for the class entry
+                const deleteBtnContainer = document.createElement('div');
+                deleteBtnContainer.className = 'input-field flex items-end'; // Align button at the bottom
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Remove';
+                deleteBtn.className = 'btn btn-danger w-full';
+                deleteBtn.onclick = () => {
+                    // Remove the class entry from the DOM
+                    classInputsContainer.removeChild(classEntryDiv);
+                    // Remove the corresponding data from the classesData array
+                    classesData = classesData.filter(c => c.id !== classId);
+                    showMessage('Class entry removed.', 'success');
+                };
+                deleteBtnContainer.appendChild(deleteBtn);
+
+                // Append all fields to the class entry div
+                classEntryDiv.appendChild(classNameField);
+                classEntryDiv.appendChild(boysField);
+                classEntryDiv.appendChild(girlsField);
+                classEntryDiv.appendChild(deleteBtnContainer);
+
+                // Append the class entry div to the container
+                classInputsContainer.appendChild(classEntryDiv);
+
+                // Initialize data for this new class entry in classesData array
+                const newClassData = {
+                    id: classId,
+                    className: '',
+                    boys: 0,
+                    girls: 0
+                };
+                classesData.push(newClassData);
+
+                // Add event listeners to update classesData when input values change
+                const nameInput = classEntryDiv.querySelector(`#${classId}-name`);
+                const boysInput = classEntryDiv.querySelector(`#${classId}-boys`);
+                const girlsInput = classEntryDiv.querySelector(`#${classId}-girls`);
+
+                nameInput.addEventListener('input', (e) => {
+                    newClassData.className = e.target.value.trim();
+                });
+                boysInput.addEventListener('input', (e) => {
+                    newClassData.boys = parseInt(e.target.value) || 0;
+                });
+                girlsInput.addEventListener('input', (e) => {
+                    newClassData.girls = parseInt(e.target.value) || 0;
                 });
             }
 
-            // Sort students by total marks to determine ranks, but do not reorder them in the table
-            studentsData.sort((a, b) => b.totalMarks - a.totalMarks);
-            studentsData.forEach((data, index) => {
-                data.rank = index + 1;
-                data.row[data.row.length - 1] = data.rank;
-            });
+            /**
+             * Collects student data for a given gender from the class input blocks.
+             * @param {string} gender - 'boys' or 'girls'.
+             * @returns {Array<Object>} An array of student objects, each with a 'class' property.
+             */
+            function collectStudents(gender) {
+                const students = [];
+                // Iterate through the stored classesData array instead of querying DOM
+                classesData.forEach(classEntry => {
+                    const className = classEntry.className;
+                    const count = classEntry[gender]; // Access 'boys' or 'girls' count
 
-            // Add original order rows with calculated rank to the table
-            studentsData.sort((a, b) => parseInt(a.student.split(" ")[1]) - parseInt(b.student.split(" ")[1]));
-            studentsData.forEach(data => {
-                table.push(data.row);
-            });
-
-            // Add table to PDF
-            doc.autoTable({
-                head: [table[0]],
-                body: table.slice(1),
-                startY: 20,
-                theme: 'striped',
-            });
-
-            // Save PDF
-            doc.save('marks.pdf');
-        }
-
-        function generateIndividualPDFs() {
-            const { jsPDF } = window.jspdf;
-            const numSubjects = document.getElementById('numSubjects').value;
-            const numStudents = document.getElementById('numStudents').value;
-
-            let subjectNames = [];
-
-            // Get subject names
-            for (let i = 1; i <= numSubjects; i++) {
-                const subjectName = document.getElementById(`subject${i}`).value;
-                subjectNames.push(subjectName);
+                    // Only add students if class name is not empty and count is positive
+                    if (className && count > 0) {
+                        for (let i = 0; i < count; i++) {
+                            students.push({ class: className });
+                        }
+                    }
+                });
+                return students;
             }
 
-            // Fill in student marks and calculate total, percentage, and rank
-            let studentsData = [];
-
-            for (let j = 1; j <= numStudents; j++) {
-                let row = [`Student ${j}`];
-                let totalMarks = 0;
-
-                for (let i = 1; i <= numSubjects; i++) {
-                    const mark = document.getElementById(`mark${i}_${j}`).value;
-                    totalMarks += parseFloat(mark || 0);
-                    row.push(mark);
+            /**
+             * Arranges students onto benches, prioritizing class separation and varying patterns.
+             * This version aims to avoid immediate same-class adjacency on a bench and fill benches compactly.
+             * @param {Array<Object>} students - An array of student objects ({ class: string }).
+             * @param {number} benchCount - The total number of benches available.
+             * @returns {Array<Array<string>>} An array where each sub-array represents a bench's occupants (class names).
+             */
+            function arrangeBenches(students, benchCount) {
+                if (benchCount === 0) {
+                    return [];
+                }
+                if (students.length === 0) {
+                    return Array.from({ length: benchCount }, () => []);
                 }
 
-                const percentage = (totalMarks / (numSubjects * 50)) * 100;
-                studentsData.push({
-                    student: `Student ${j}`,
-                    marks: row.slice(1),
-                    totalMarks: totalMarks,
-                    percentage: percentage.toFixed(2),
-                    rank: 0 // Rank is temporarily set to 0
-                });
-            }
-
-            // Sort students by total marks to determine ranks, but do not reorder them in the table
-            studentsData.sort((a, b) => b.totalMarks - a.totalMarks);
-            studentsData.forEach((data, index) => {
-                data.rank = index + 1;
-            });
-
-            // Generate individual PDFs
-            studentsData.sort((a, b) => parseInt(a.student.split(" ")[1]) - parseInt(b.student.split(" ")[1]));
-            studentsData.forEach((data) => {
-                const doc = new jsPDF();
-
-                // Add student details
-                doc.setFontSize(16);
-                doc.text(data.student, 20, 20);
-
-                // Add table with student's marks, total, percentage, and rank
-                doc.autoTable({
-                    head: [['Subject', 'Marks']],
-                    body: subjectNames.map((name, index) => [name, data.marks[index]]),
-                    startY: 30,
-                    theme: 'striped',
+                // Group students by class into mutable queues
+                const classQueues = {};
+                students.forEach(s => {
+                    if (!classQueues[s.class]) {
+                        classQueues[s.class] = [];
+                    }
+                    classQueues[s.class].push(s.class); // Store just the class name in the queue
                 });
 
-                doc.text(`Total Marks: ${data.totalMarks}`, 20, doc.lastAutoTable.finalY + 10);
-                doc.text(`Percentage: ${data.percentage}%`, 20, doc.lastAutoTable.finalY + 20);
-                doc.text(`Rank: ${data.rank}`, 20, doc.lastAutoTable.finalY + 30);
+                // Get a list of all unique class names
+                const uniqueClassNames = Object.keys(classQueues);
+                
+                const finalArrangement = Array.from({ length: benchCount }, () => []);
+                let totalStudentsPlaced = 0;
+                
+                // Calculate the maximum number of students any single bench might hold.
+                // This determines how many "slots" we try to fill on each bench.
+                const maxStudentsPerBench = Math.ceil(students.length / benchCount);
 
-                // Save individual PDF
-                doc.save(`${data.student}.pdf`);
-            });
-        }
-    </script>
-    <!-- Adding jsPDF Autotable Plugin -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-</body>
-</html>
+                // Loop through each "slot position" on the benches (e.g., first student on each bench, then second, etc.)
+                // This ensures a broad distribution first.
+                for (let slotPosition = 0; slotPosition < maxStudentsPerBench; slotPosition++) {
+                    // Loop through each bench
+                    for (let b = 0; b < benchCount; b++) {
+                        // Only try to place a student if this bench hasn't reached its current slot capacity
+                        // and if there are still students to place overall.
+                        if (finalArrangement[b].length <= slotPosition && totalStudentsPlaced < students.length) {
+                            const currentBenchOccupants = finalArrangement[b];
+                            const classesOnCurrentBenchSet = new Set(currentBenchOccupants);
+                            
+                            let classToPlace = null;
+
+                            // Create a fresh shuffled list of unique class names for this specific placement.
+                            // This ensures maximum randomness for each individual decision.
+                            const shuffledUniqueClasses = [...uniqueClassNames];
+                            for (let i = shuffledUniqueClasses.length - 1; i > 0; i--) {
+                                const j = Math.floor(Math.random() * (i + 1));
+                                [shuffledUniqueClasses[i], shuffledUniqueClasses[j]] = [shuffledUniqueClasses[j], shuffledUniqueClasses[i]];
+                            }
+
+                            // Strategy 1: Prioritize placing a student from a class NOT already on this bench
+                            for (const className of shuffledUniqueClasses) {
+                                if (classQueues[className].length > 0 && !classesOnCurrentBenchSet.has(className)) {
+                                    classToPlace = className;
+                      
